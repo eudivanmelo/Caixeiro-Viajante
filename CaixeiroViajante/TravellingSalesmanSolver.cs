@@ -36,79 +36,87 @@ public class TravellingSalesmanSolver(int[,] distanceMatrix)
                 return result;
             }
 
-            progress?.Report($"Iniciando cálculo de {startNode} até {endNode}...");
+            string logFile = $"caminhos_{startNode}_to_{endNode}_{DateTime.Now:yyyyMMdd_HHmmss}.txt";
+            using StreamWriter writer = new(logFile);
+            writer.WriteLine($"=== Explorando caminhos de {startNode} até {endNode} ===");
+            writer.WriteLine($"Início: {DateTime.Now:HH:mm:ss}");
+            writer.WriteLine();
 
-            List<int> intermediateNodes = [];
-            for (int i = 0; i < numNodes; i++)
-            {
-                if (i != startNode && i != endNode)
-                {
-                    intermediateNodes.Add(i);
-                }
-            }
+            progress?.Report($"Explorando todos os caminhos de {startNode} até {endNode}...");
 
             int bestDistance = int.MaxValue;
             List<int> bestPath = [];
-            long permutationsChecked = 0;
+            long pathsExplored = 0;
+            
+            List<int> currentPath = [startNode];
+            HashSet<int> visited = [startNode];
 
-            long totalPermutations = 1;
-            for (int size = 1; size <= intermediateNodes.Count; size++)
+            void ExplorePaths(int currentNode, int currentDistance)
             {
-                totalPermutations += Combinations(intermediateNodes.Count, size) * Factorial(size);
-            }
-
-            progress?.Report($"Total de caminhos a testar: {totalPermutations:N0}");
-
-            int directDistance = distanceMatrix[startNode, endNode];
-            if (directDistance > 0)
-            {
-                bestDistance = directDistance;
-                bestPath = [startNode, endNode];
-                progress?.Report($"Caminho direto: {startNode} → {endNode} = {directDistance}");
-            }
-            permutationsChecked++;
-
-            for (int size = 1; size <= intermediateNodes.Count; size++)
-            {
-                var combinations = GetCombinations(intermediateNodes, size);
-
-                foreach (var combination in combinations)
+                if (currentNode == endNode)
                 {
-                    foreach (var permutation in GetPermutations(combination.ToList()))
+                    pathsExplored++;
+                    
+                    string pathString = string.Join(" -> ", currentPath);
+                    writer.WriteLine($"Caminho {pathsExplored}: {pathString} | Distância: {currentDistance}");
+                    
+                    if (currentDistance < bestDistance)
                     {
-                        permutationsChecked++;
-
-                        List<int> currentPath = [startNode, .. permutation, endNode];
-                        int currentDistance = CalculatePathDistance(currentPath);
-
-                        if (currentDistance > 0 && currentDistance < int.MaxValue && currentDistance < bestDistance)
-                        {
-                            bestDistance = currentDistance;
-                            bestPath = [.. currentPath];
-                        }
-
-                        if (permutationsChecked % 1000 == 0)
-                        {
-                            double percentage = permutationsChecked * 100.0 / totalPermutations;
-                            int permsPerSecond = (int)(permutationsChecked / stopwatch.Elapsed.TotalSeconds);
-                            progress?.Report($"Progresso: {percentage:F2}% ({permutationsChecked:N0}/{totalPermutations:N0}) | {permsPerSecond:N0} perm/s | Melhor: {bestDistance}");
-                        }
+                        bestDistance = currentDistance;
+                        bestPath = [.. currentPath];
                     }
+
+                    if (pathsExplored % 1000 == 0)
+                    {
+                        int permsPerSecond = (int)(pathsExplored / stopwatch.Elapsed.TotalSeconds);
+                        progress?.Report($"Caminhos explorados: {pathsExplored:N0} | {permsPerSecond:N0} caminhos/s | Melhor: {(bestDistance == int.MaxValue ? "∞" : bestDistance.ToString())}");
+                    }
+                    return;
+                }
+
+                for (int nextNode = 0; nextNode < numNodes; nextNode++)
+                {
+                    if (visited.Contains(nextNode))
+                        continue;
+
+                    int distance = distanceMatrix[currentNode, nextNode];
+                    if (distance == 0)
+                        continue;
+
+                    int newDistance = currentDistance + distance;
+
+                    currentPath.Add(nextNode);
+                    visited.Add(nextNode);
+
+                    ExplorePaths(nextNode, newDistance);
+
+                    currentPath.RemoveAt(currentPath.Count - 1);
+                    visited.Remove(nextNode);
                 }
             }
+
+            ExplorePaths(startNode, 0);
+
+            writer.WriteLine();
+            writer.WriteLine("=== RESULTADO FINAL ===");
+            writer.WriteLine($"Total de caminhos explorados: {pathsExplored:N0}");
+            writer.WriteLine($"Melhor caminho: {string.Join(" → ", bestPath)}");
+            writer.WriteLine($"Melhor distância: {bestDistance}");
+            writer.WriteLine($"Tempo decorrido: {stopwatch.Elapsed.TotalSeconds:F2}s");
+            writer.WriteLine($"Fim: {DateTime.Now:HH:mm:ss}");
 
             stopwatch.Stop();
 
             result.BestPath = bestPath;
             result.BestDistance = bestDistance;
-            result.PermutationsChecked = permutationsChecked;
+            result.PermutationsChecked = pathsExplored;
             result.ElapsedTime = stopwatch.Elapsed;
             result.Success = bestDistance < int.MaxValue;
             result.Message = result.Success 
                 ? $"Melhor caminho encontrado com distância {bestDistance}" 
                 : "Nenhum caminho válido encontrado";
 
-            progress?.Report($"Concluído! Tempo: {result.ElapsedTime.TotalSeconds:F2}s");
+            progress?.Report($"Concluído! Tempo: {result.ElapsedTime.TotalSeconds:F2}s | Caminhos explorados: {pathsExplored:N0}");
         }
         catch (Exception ex)
         {
@@ -121,105 +129,6 @@ public class TravellingSalesmanSolver(int[,] distanceMatrix)
         return result;
     }
 
-    private int CalculatePathDistance(List<int> path)
-    {
-        int totalDistance = 0;
-
-        for (int i = 0; i < path.Count - 1; i++)
-        {
-            int from = path[i];
-            int to = path[i + 1];
-            int distance = distanceMatrix[from, to];
-
-            if (distance == 0)
-            {
-                return -1;
-            }
-
-            totalDistance += distance;
-        }
-
-        return totalDistance;
-    }
-
-    private static IEnumerable<List<int>> GetPermutations(List<int> list)
-    {
-        if (list.Count == 0)
-        {
-            yield return new List<int>();
-            yield break;
-        }
-
-        for (int i = 0; i < list.Count; i++)
-        {
-            int element = list[i];
-            List<int> remaining = [.. list];
-            remaining.RemoveAt(i);
-
-            foreach (var permutation in GetPermutations(remaining))
-            {
-                List<int> result = [element, .. permutation];
-                yield return result;
-            }
-        }
-    }
-
-    private static long Factorial(int n)
-    {
-        if (n <= 1) return 1;
-        long result = 1;
-        for (int i = 2; i <= n; i++)
-        {
-            result *= i;
-        }
-        return result;
-    }
-
-    private static long Combinations(int n, int k)
-    {
-        if (k > n) return 0;
-        if (k == 0 || k == n) return 1;
-        
-        long result = 1;
-        for (int i = 1; i <= k; i++)
-        {
-            result = result * (n - i + 1) / i;
-        }
-        return result;
-    }
-
-    private static IEnumerable<List<int>> GetCombinations(List<int> list, int k)
-    {
-        if (k == 0)
-        {
-            yield return [];
-            yield break;
-        }
-
-        if (k > list.Count)
-        {
-            yield break;
-        }
-
-        if (k == list.Count)
-        {
-            yield return [.. list];
-            yield break;
-        }
-
-        int first = list[0];
-        List<int> rest = list.GetRange(1, list.Count - 1);
-
-        foreach (var combination in GetCombinations(rest, k - 1))
-        {
-            yield return [first, .. combination];
-        }
-
-        foreach (var combination in GetCombinations(rest, k))
-        {
-            yield return combination;
-        }
-    }
 
     public int GetDistance(int from, int to)
     {

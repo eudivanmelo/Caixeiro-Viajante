@@ -1,0 +1,34 @@
+# Visual Studio
+.vs/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# Build results
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+bin/
+obj/
+
+# Rider
+.idea/
+
+# Other files
+*.log
+*.ncb
+*.sdf
+*.opensdf
+*.cache
+*.pdb
+*.mdb
+*.opendb
+*.ilk
+*.idb
+*.tlog
+*.tlh
+*.tli
+*.tmp
+*.temp

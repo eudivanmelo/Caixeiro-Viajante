@@ -1,0 +1,19 @@
+=== Problema do Caixeiro Viajante - Partindo de 0 ===
+Total de cidades: 5
+Início: 19:53:27
+
+Caminho 1: 0 -> 1 -> 2 -> 3 -> 4 -> 0 | Distância: 22
+Caminho 2: 0 -> 1 -> 2 -> 4 -> 3 -> 0 | Distância: 15
+Caminho 3: 0 -> 1 -> 3 -> 2 -> 4 -> 0 | Distância: 21
+Caminho 4: 0 -> 3 -> 1 -> 2 -> 4 -> 0 | Distância: 19
+Caminho 5: 0 -> 3 -> 4 -> 2 -> 1 -> 0 | Distância: 15
+Caminho 6: 0 -> 4 -> 2 -> 1 -> 3 -> 0 | Distância: 19
+Caminho 7: 0 -> 4 -> 2 -> 3 -> 1 -> 0 | Distância: 21
+Caminho 8: 0 -> 4 -> 3 -> 2 -> 1 -> 0 | Distância: 22
+
+=== RESULTADO FINAL ===
+Total de caminhos explorados: 8
+Melhor caminho: 0 → 1 → 2 → 4 → 3 → 0
+Melhor distância: 15
+Tempo decorrido: 0.02s
+Fim: 19:53:27

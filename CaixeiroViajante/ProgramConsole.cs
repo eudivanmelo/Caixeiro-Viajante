@@ -5,7 +5,7 @@ namespace CaixeiroViajante;
 /// </summary>
 static class ProgramConsole
 {
-    // Matriz de distâncias entre as cidades
+    /*// Matriz de distâncias entre as cidades
     private static readonly int[,] coordsDistances = new int[,]
     {
         {0, 20, 0, 0, 0, 0, 0, 29, 0, 0, 0, 29, 37, 0, 0, 0, 0, 0},
@@ -26,6 +26,15 @@ static class ProgramConsole
         {0, 0, 0, 0, 0, 0, 0, 0, 0, 43, 0, 43, 19, 19, 0, 0, 26, 0},
         {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 17, 18, 26, 0, 15},
         {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 36, 0, 0, 0, 21, 0, 15, 0}
+    };*/
+
+    private static readonly int[,] coordsDistances = new int[,]
+    {
+        { 0, 2, 0, 3, 6 },
+        { 2, 0, 4, 3, 0 },
+        { 0, 4, 0, 7, 3 },
+        { 3, 3, 7, 0, 3 },
+        { 6, 0, 3, 3, 0 }
     };
 
     static void Main(string[] args)

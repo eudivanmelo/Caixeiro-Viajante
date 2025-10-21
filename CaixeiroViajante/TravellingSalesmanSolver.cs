@@ -22,27 +22,21 @@ public class TravellingSalesmanSolver(int[,] distanceMatrix)
 
         try
         {
-            if (startNode < 0 || startNode >= numNodes || endNode < 0 || endNode >= numNodes)
+            if (startNode < 0 || startNode >= numNodes)
             {
                 result.Success = false;
-                result.Message = "Nó inicial ou final inválido";
+                result.Message = "Nó inicial inválido";
                 return result;
             }
 
-            if (startNode == endNode)
-            {
-                result.Success = false;
-                result.Message = "Nó inicial e final devem ser diferentes";
-                return result;
-            }
-
-            string logFile = $"caminhos_{startNode}_to_{endNode}_{DateTime.Now:yyyyMMdd_HHmmss}.txt";
+            string logFile = $"caminhos_tsp_{startNode}_{DateTime.Now:yyyyMMdd_HHmmss}.txt";
             using StreamWriter writer = new(logFile);
-            writer.WriteLine($"=== Explorando caminhos de {startNode} até {endNode} ===");
+            writer.WriteLine($"=== Problema do Caixeiro Viajante - Partindo de {startNode} ===");
+            writer.WriteLine($"Total de cidades: {numNodes}");
             writer.WriteLine($"Início: {DateTime.Now:HH:mm:ss}");
             writer.WriteLine();
 
-            progress?.Report($"Explorando todos os caminhos de {startNode} até {endNode}...");
+            progress?.Report($"Explorando todos os caminhos partindo de {startNode} visitando todas as cidades e retornando...");
 
             int bestDistance = int.MaxValue;
             List<int> bestPath = [];
@@ -53,23 +47,29 @@ public class TravellingSalesmanSolver(int[,] distanceMatrix)
 
             void ExplorePaths(int currentNode, int currentDistance)
             {
-                if (currentNode == endNode)
+                if (visited.Count == numNodes)
                 {
-                    pathsExplored++;
-                    
-                    string pathString = string.Join(" -> ", currentPath);
-                    writer.WriteLine($"Caminho {pathsExplored}: {pathString} | Distância: {currentDistance}");
-                    
-                    if (currentDistance < bestDistance)
+                    int returnDistance = distanceMatrix[currentNode, startNode];
+                    if (returnDistance > 0)
                     {
-                        bestDistance = currentDistance;
-                        bestPath = [.. currentPath];
-                    }
+                        pathsExplored++;
+                        int totalDistance = currentDistance + returnDistance;
+                        
+                        List<int> completePath = [.. currentPath, startNode];
+                        string pathString = string.Join(" -> ", completePath);
+                        writer.WriteLine($"Caminho {pathsExplored}: {pathString} | Distância: {totalDistance}");
+                        
+                        if (totalDistance < bestDistance)
+                        {
+                            bestDistance = totalDistance;
+                            bestPath = completePath;
+                        }
 
-                    if (pathsExplored % 1000 == 0)
-                    {
-                        int permsPerSecond = (int)(pathsExplored / stopwatch.Elapsed.TotalSeconds);
-                        progress?.Report($"Caminhos explorados: {pathsExplored:N0} | {permsPerSecond:N0} caminhos/s | Melhor: {(bestDistance == int.MaxValue ? "∞" : bestDistance.ToString())}");
+                        if (pathsExplored % 1000 == 0)
+                        {
+                            int permsPerSecond = (int)(pathsExplored / stopwatch.Elapsed.TotalSeconds);
+                            progress?.Report($"Caminhos explorados: {pathsExplored:N0} | {permsPerSecond:N0} caminhos/s | Melhor: {(bestDistance == int.MaxValue ? "∞" : bestDistance.ToString())}");
+                        }
                     }
                     return;
                 }

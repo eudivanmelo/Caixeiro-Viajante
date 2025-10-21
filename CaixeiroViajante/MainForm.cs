@@ -40,7 +40,6 @@ public partial class MainForm : Form
     
     private Panel controlPanel = null!;
     private NumericUpDown startNodeInput = null!;
-    private NumericUpDown endNodeInput = null!;
     private Button solveButton = null!;
     private Label statusLabel = null!;
     private Label resultLabel = null!;
@@ -70,40 +69,33 @@ public partial class MainForm : Form
 
         Label startLabel = new Label
         {
-            Text = "Nó Inicial:",
+            Text = "Cidade Inicial:",
             Location = new Point(15, 18),
-            Width = 80,
+            Width = 100,
         };
 
         startNodeInput = new NumericUpDown
         {
-            Location = new Point(100, 15),
+            Location = new Point(120, 15),
             Width = 60,
             Minimum = 1,
             Maximum = coordsDistances.GetLength(0),
             Value = 1,
         };
 
-        Label endLabel = new Label
+        Label infoLabel = new Label
         {
-            Text = "Nó Final:",
-            Location = new Point(180, 18),
-            Width = 70,
-        };
-
-        endNodeInput = new NumericUpDown
-        {
-            Location = new Point(250, 15),
-            Width = 60,
-            Minimum = 1,
-            Maximum = coordsDistances.GetLength(0),
-            Value = coordsDistances.GetLength(0),
+            Text = "(Visitará todas as cidades e retornará à origem)",
+            Location = new Point(190, 18),
+            Width = 350,
+            ForeColor = Color.FromArgb(100, 100, 100),
+            Font = new Font("Segoe UI", 8, FontStyle.Italic)
         };
 
         solveButton = new Button
         {
-            Text = "Calcular Melhor Caminho",
-            Location = new Point(330, 13),
+            Text = "Calcular Melhor Rota",
+            Location = new Point(550, 13),
             Width = 200,
             Height = 30,
         };
@@ -111,7 +103,7 @@ public partial class MainForm : Form
 
         statusLabel = new Label
         {
-            Text = "Pronto para calcular",
+            Text = "Pronto para calcular a rota do Caixeiro Viajante",
             Location = new Point(15, 55),
             Width = 900,
             Height = 20,
@@ -131,8 +123,7 @@ public partial class MainForm : Form
 
         controlPanel.Controls.AddRange(
         [
-            startLabel, startNodeInput, 
-            endLabel, endNodeInput, 
+            startLabel, startNodeInput, infoLabel,
             solveButton, statusLabel, resultLabel 
         ]);
 
@@ -144,7 +135,6 @@ public partial class MainForm : Form
         if (solver == null) return;
 
         int startNode = (int)startNodeInput.Value - 1;
-        int endNode = (int)endNodeInput.Value - 1;
 
         solveButton.Enabled = false;
         statusLabel.Text = "Calculando...";
@@ -160,14 +150,14 @@ public partial class MainForm : Form
 
         try
         {
-            var result = await Task.Run(() => solver.Solve(startNode, endNode, progress));
+            var result = await Task.Run(() => solver.Solve(startNode, progress));
 
             if (result.Success)
             {
                 string pathStr = string.Join(" → ", result.BestPath.Select(n => n + 1));
                 statusLabel.Text = $"Concluído em {result.ElapsedTime.TotalSeconds:F2}s";
                 statusLabel.ForeColor = Color.Green;
-                resultLabel.Text = $"Melhor Caminho: {pathStr} | Distância: {result.BestDistance} | Permutações: {result.PermutationsChecked:N0}";
+                resultLabel.Text = $"Melhor Rota: {pathStr} | Distância Total: {result.BestDistance} | Rotas exploradas: {result.PermutationsChecked:N0}";
             }
             else
             {
